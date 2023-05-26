@@ -11,11 +11,13 @@ module.exports = class Subaccount {
   constructor(
     arweave,
     wallet,
-    gqlUrl = `https://arweave-search.goldsky.com/graphql`
+    gqlUrl = `https://prophet.rareweave.store/graphql`,
+    gateway = `https://prophet.rareweave.store/`
   ) {
     this.arweave = arweave;
     this.wallet = wallet;
     this.gqlUrl = gqlUrl;
+    this.gateway = gateway;
   }
 
   async fetchSubaccount(address, app) {
@@ -43,6 +45,51 @@ module.exports = class Subaccount {
       .catch((e) => null);
 
     return subaccountTx?.data?.transactions?.edges[0];
+  }
+
+  async fetchMaster(pubkey, app) {
+    let search = await fetch(this.gqlUrl, {
+      method: `POST`,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: `query {
+          transactions(
+            tags: [
+              {name: "Pubkey", values: ["${pubkey}"]}
+              {name: "Protocol", values: ["Subaccounts"]}
+              {name: "App", values: ["${app}"]}
+            ]
+            sort: HEIGHT_DESC, first: 1) {
+            edges {
+              node {
+                id
+                tags {
+                  name
+                  value
+                }
+              }
+            }
+          }
+        }`,
+      }),
+    })
+      .then((res) => res.json())
+      .catch((e) => null);
+
+    let data = search?.data?.transactions?.edges[0];
+
+    let body = await (await fetch(`${this.gateway}/${data.node.id}`)).json();
+
+    console.log(data.node.tags[3].value);
+    let verify = await verifySig(
+      pubkey,
+      data.node.tags[3].value,
+      body.signature
+    );
+
+    console.log(verify);
+
+    return search?.data?.transactions?.edges[0];
   }
 
   async makeSubaccount(address, app) {
@@ -116,9 +163,7 @@ module.exports = class Subaccount {
         aesKeyRaw
       );
 
-      let mainAddress = await this.arweave.wallets.ownerToAddress(jwk.n);
-
-      let message = new TextEncoder().encode(mainAddress); // Convert the master wallet address to bytes
+      let message = new TextEncoder().encode(address); // Convert the master wallet address to bytes
       let signature = await this.arweave.crypto.sign(jwk, message);
 
       let signatureBase64Url = this.arweave.utils.bufferTob64Url(signature);
@@ -145,7 +190,7 @@ module.exports = class Subaccount {
           },
           {
             name: "Address",
-            value: mainAddress,
+            value: address,
           },
         ]),
       });
@@ -279,4 +324,37 @@ function base64UrlToUint8Array(base64Url) {
   }
 
   return array;
+}
+
+async function verifySig(subwalletPublic, masterAddress, sig) {
+  let importedPublicKey = await subtleCrypto.importKey(
+    "jwk",
+    await publicKeyToJwk(subwalletPublic),
+    {
+      name: "RSASSA-PKCS1-v1_5",
+      hash: { name: "SHA-256" },
+    },
+    true,
+    ["verify"]
+  );
+
+  let signatureBuffer = b64UrlToBuffer(sig);
+  let messageBuffer = new TextEncoder().encode(masterAddress);
+
+  let isValidSignature = await subtleCrypto.verify(
+    {
+      name: "RSASSA-PKCS1-v1_5",
+    },
+    importedPublicKey,
+    signatureBuffer,
+    messageBuffer
+  );
+
+  return isValidSignature;
+}
+
+function b64UrlToBuffer(b64Url) {
+  let base64 = b64Url.replace(/-/g, "+").replace(/_/g, "/");
+  let buf = Buffer.from(base64, "base64");
+  return Uint8Array.from(buf).buffer;
 }
