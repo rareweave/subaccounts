@@ -75,21 +75,7 @@ module.exports = class Subaccount {
     })
       .then((res) => res.json())
       .catch((e) => null);
-
-    let data = search?.data?.transactions?.edges[0];
-
-    let body = await (await fetch(`${this.gateway}/${data.node.id}`)).json();
-
-    console.log(data.node.tags[3].value);
-    let verify = await verifySig(
-      pubkey,
-      data.node.tags[3].value,
-      body.signature
-    );
-
-    console.log(verify);
-
-    return search?.data?.transactions?.edges[0];
+    return search?.data?.transactions?.edges[0].node.tags[3];
   }
 
   async makeSubaccount(address, app) {
@@ -324,37 +310,4 @@ function base64UrlToUint8Array(base64Url) {
   }
 
   return array;
-}
-
-async function verifySig(subwalletPublic, masterAddress, sig) {
-  let importedPublicKey = await subtleCrypto.importKey(
-    "jwk",
-    await publicKeyToJwk(subwalletPublic),
-    {
-      name: "RSASSA-PKCS1-v1_5",
-      hash: { name: "SHA-256" },
-    },
-    true,
-    ["verify"]
-  );
-
-  let signatureBuffer = b64UrlToBuffer(sig);
-  let messageBuffer = new TextEncoder().encode(masterAddress);
-
-  let isValidSignature = await subtleCrypto.verify(
-    {
-      name: "RSASSA-PKCS1-v1_5",
-    },
-    importedPublicKey,
-    signatureBuffer,
-    messageBuffer
-  );
-
-  return isValidSignature;
-}
-
-function b64UrlToBuffer(b64Url) {
-  let base64 = b64Url.replace(/-/g, "+").replace(/_/g, "/");
-  let buf = Buffer.from(base64, "base64");
-  return Uint8Array.from(buf).buffer;
 }

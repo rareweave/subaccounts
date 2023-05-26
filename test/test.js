@@ -15,7 +15,6 @@
     "https://prophet.rareweave.store/graphql"
   );
 
-  console.log(await arweave.wallets.jwkToAddress(jwk));
   // const subaccount = await SubAccounts.makeSubaccount(
   //   await arweave.wallets.jwkToAddress(jwk),
   //   "Yeher"
