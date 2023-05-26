@@ -1,4 +1,3 @@
-const fetch = typeof window != "object" ? require("undici").fetch : fetch;
 const webCrypto =
   typeof window == "object"
     ? window?.crypto
@@ -11,49 +10,12 @@ const subtleCrypto =
 module.exports = class Subaccount {
   constructor(
     arweave,
-    signer = null,
+    wallet,
     gqlUrl = `https://arweave-search.goldsky.com/graphql`
   ) {
     this.arweave = arweave;
-    this.signer = signer;
+    this.wallet = wallet;
     this.gqlUrl = gqlUrl;
-    this.publicKeyJWK = {
-      kty: signer.kty,
-      n: signer.n,
-      e: signer.e,
-      alg: "RSA-OAEP-256",
-      ext: true,
-      key_ops: ["encrypt"],
-    };
-    if (!this.signer.decrypt && this.signer.n) {
-      this.importedSignerKey = subtleCrypto.importKey(
-        "jwk",
-        this.signer,
-        { name: "RSA-PSS", hash: "SHA-256" },
-        false,
-        ["sign"]
-      );
-      this.importedDecryptKey = subtleCrypto.importKey(
-        "jwk",
-        this.signer,
-        { name: "RSA-OAEP", hash: "SHA-256" },
-        false,
-        ["decrypt"]
-      );
-      this.importedEncryptKey = subtleCrypto.importKey(
-        "jwk",
-        {
-          kty: "RSA",
-          e: "AQAB",
-          n: this.signer.n,
-          alg: "RSA-OAEP-256",
-          ext: true,
-        },
-        { name: "RSA-OAEP", hash: "SHA-256" },
-        false,
-        ["encrypt"]
-      );
-    }
   }
 
   async fetchSubaccount(address, app) {
@@ -84,8 +46,8 @@ module.exports = class Subaccount {
   }
 
   async makeSubaccount(address, app) {
-    if (!this.signer) {
-      throw new Error("No signer");
+    if (!this.wallet) {
+      throw new Error("No wallet");
     }
 
     // Checks arweave to see if an account already exists
@@ -94,16 +56,26 @@ module.exports = class Subaccount {
 
     if (!existingSubaccount) {
       // Import the main wallet
-      let publicJwk = await subtleCrypto.importKey(
-        "jwk",
-        this.publicKeyJWK,
-        {
-          name: "RSA-OAEP",
-          hash: { name: "SHA-256" },
-        },
-        true,
-        ["encrypt"]
-      );
+      let publicKey;
+
+      if (typeof window === "undefined") {
+        // Node.js environment
+        publicKey = {
+          kty: this.wallet.kty,
+          n: this.wallet.n,
+          e: this.wallet.e,
+          alg: "RSA-OAEP-256",
+          ext: true,
+          key_ops: ["encrypt"],
+        };
+      } else {
+        // Browser environment
+        publicKey = await publicKeyToJwk(
+          await this.wallet.getActivePublicKey()
+        );
+      }
+
+      let publicJwk = await importKey(publicKey);
 
       // Generate the new Sub wallet
       jwk = await this.arweave.wallets.generate();
@@ -135,7 +107,7 @@ module.exports = class Subaccount {
       // Export the AES key as raw, so it can be encrypted with RSA
       let aesKeyRaw = await subtleCrypto.exportKey("raw", aesKey);
 
-      // Finaly Encryption
+      // Final Encryption
       const encryptedAesKey = await subtleCrypto.encrypt(
         {
           name: "RSA-OAEP",
@@ -150,7 +122,7 @@ module.exports = class Subaccount {
       let signature = await this.arweave.crypto.sign(jwk, message);
 
       let signatureBase64Url = this.arweave.utils.bufferTob64Url(signature);
-      console.log(signatureBase64Url);
+
       let tx = await this.arweave.createTransaction({
         data: JSON.stringify({
           encryptedAesKey: arrayBufferToBase64(encryptedAesKey),
@@ -180,23 +152,28 @@ module.exports = class Subaccount {
 
       return tx;
     }
-  }
 
-  async post(tx) {
-    await this.arweave.transactions.sign(tx, this.signer);
-
-    let response = await this.arweave.transactions.post(tx);
-
-    return response;
+    return existingSubaccount;
   }
 
   async decrypt(data, options) {
-    if (this.signer?.decrypt) {
-      return this.signer.decrypt(tx);
-    } else {
-      let privateJWK = await webCrypto.subtle.importKey(
+    // Assuming these are in base64 format, convert them back to ArrayBuffers
+    let encryptedAesKeyBuffer = Uint8Array.from(
+      atob(data.encryptedAesKey),
+      (c) => c.charCodeAt(0)
+    );
+    let encryptedJwkBuffer = Uint8Array.from(atob(data.encryptedJwk), (c) =>
+      c.charCodeAt(0)
+    );
+    let ivBuffer = Uint8Array.from(atob(data.iv), (c) => c.charCodeAt(0));
+
+    let aesKeyBuffer;
+
+    if (typeof window === "undefined") {
+      // Node.js environment
+      let privateKey = await subtleCrypto.importKey(
         "jwk",
-        this.signer,
+        this.wallet,
         {
           name: "RSA-OAEP",
           hash: { name: "SHA-256" },
@@ -205,70 +182,60 @@ module.exports = class Subaccount {
         ["decrypt"]
       );
 
-      // Assuming these are in base64 format, convert them back to ArrayBuffers
-      let encryptedAesKeyBuffer = Uint8Array.from(
-        atob(data.encryptedAesKey),
-        (c) => c.charCodeAt(0)
-      );
-      let encryptedJwkBuffer = Uint8Array.from(atob(data.encryptedJwk), (c) =>
-        c.charCodeAt(0)
-      );
-      let ivBuffer = Uint8Array.from(atob(data.iv), (c) => c.charCodeAt(0));
-
-      let aesKeyBuffer = await webCrypto.subtle.decrypt(
+      aesKeyBuffer = await subtleCrypto.decrypt(
         {
           name: "RSA-OAEP",
         },
-        privateJWK,
+        privateKey,
         encryptedAesKeyBuffer
       );
-
-      let aesKey = await webCrypto.subtle.importKey(
-        "raw",
-        aesKeyBuffer,
-        {
-          name: "AES-GCM",
-          length: 256,
-        },
-        true,
-        ["decrypt"]
-      );
-
-      let jwkBuffer = await webCrypto.subtle.decrypt(
-        {
-          name: "AES-GCM",
-          iv: ivBuffer,
-        },
-        aesKey,
-        encryptedJwkBuffer
-      );
-
-      let jwkStr = new TextDecoder().decode(jwkBuffer);
-      let jwk = JSON.parse(jwkStr);
-
-      return jwk;
-    }
-  }
-
-  async encrypt(data, options) {
-    if (this.signer?.decrypt) {
-      return this.signer.decrypt(tx);
     } else {
-      return await subtleCrypto.encrypt(
-        options,
-        await this.importedEncryptKey,
-        data
-      );
+      // Browser environment
+      aesKeyBuffer = await this.wallet.decrypt(encryptedAesKeyBuffer, {
+        name: "RSA-OAEP",
+      });
     }
-  }
 
-  async encodeTags(tags) {
-    return tags.map((tag) => ({
-      name: btoa(tag.name),
-      value: btoa(tag.value),
-    }));
+    let aesKey = await subtleCrypto.importKey(
+      "raw",
+      aesKeyBuffer,
+      {
+        name: "AES-GCM",
+        length: 256,
+      },
+      true,
+      ["decrypt"]
+    );
+
+    let jwkBuffer = await subtleCrypto.decrypt(
+      {
+        name: "AES-GCM",
+        iv: ivBuffer,
+      },
+      aesKey,
+      encryptedJwkBuffer
+    );
+
+    let jwkStr = new TextDecoder().decode(jwkBuffer);
+    let jwk = JSON.parse(jwkStr);
+
+    return jwk;
   }
 };
+
+async function importKey(jwk) {
+  let publicJwk = await subtleCrypto.importKey(
+    "jwk",
+    jwk,
+    {
+      name: "RSA-OAEP",
+      hash: { name: "SHA-256" },
+    },
+    true,
+    ["encrypt"]
+  );
+  return publicJwk;
+}
 
 function encodeTags(tags) {
   return tags.map((tag) => ({
@@ -285,4 +252,31 @@ function arrayBufferToBase64(buffer) {
     binary += String.fromCharCode(bytes[i]);
   }
   return btoa(binary);
+}
+
+async function publicKeyToJwk(publicKey) {
+  const modulus = base64UrlToUint8Array(publicKey);
+
+  const jwk = {
+    kty: "RSA",
+    n: publicKey,
+    e: "AQAB", // Default public exponent for RSA keys
+    alg: "RSA-OAEP-256",
+    ext: true,
+  };
+
+  return jwk;
+}
+
+function base64UrlToUint8Array(base64Url) {
+  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  const rawLength = raw.length;
+  const array = new Uint8Array(new ArrayBuffer(rawLength));
+
+  for (let i = 0; i < rawLength; i++) {
+    array[i] = raw.charCodeAt(i);
+  }
+
+  return array;
 }

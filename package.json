@@ -8,11 +8,7 @@
   "license": "Unlicense",
   "private": false,
   "dependencies": {
-    "ardb": "^1.1.10",
-    "arweave": "^1.13.5",
-    "cross-fetch": "^3.1.5",
-    "isomorphic-fetch": "^3.0.0",
-    "undici": "^5.22.0"
+    "arweave": "^1.13.5"
   },
   "devDependencies": {
     "esbuild": "^0.17.17"
