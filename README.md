@@ -56,7 +56,7 @@ The `SubAccount` class provides methods for interacting with subaccounts.
 The `SubAccount` class constructor accepts the following parameters:
 
 - `arweave` (required): An instance of the Arweave client.
-- `wallet` (required): The wallet object containing the necessary keys for creating and decrypting subaccounts.
+- `wallet` (required): The wallet object containing the necessary keys for creating and decrypting subaccounts. (Typicaly JWK, or web wallet like arweave.app)
 - `gqlUrl` (optional): The GraphQL API URL. Default: `https://prophet.rareweave.store/graphql`.
 - `gateway` (optional): The gateway URL. Default: `https://prophet.rareweave.store/`.
 
