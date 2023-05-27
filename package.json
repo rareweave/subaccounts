@@ -1,5 +1,5 @@
 {
-  "name": "subaccounts",
+  "name": "arweave-subaccounts",
   "version": "0.0.1",
   "description": "App-based subaccounts for Arweave",
   "main": "src/lib/index.js",
