@@ -19,7 +19,7 @@ yarn add arweave-subaccounts
 ## Browser
 
 ```
-<script src="https://www.unpkg.com/arweave-subaccounts@0.0.1/src/es/index.js"></script>
+<script src="https://www.unpkg.com/arweave-subaccounts@0.0.2/src/es/index.js"></script>
 ```
 
 # Docs

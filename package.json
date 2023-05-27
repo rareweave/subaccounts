@@ -1,6 +1,6 @@
 {
   "name": "arweave-subaccounts",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "App-based subaccounts for Arweave",
   "main": "src/lib/index.js",
   "module": "src/es/index.js",
