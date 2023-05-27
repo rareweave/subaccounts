@@ -49,7 +49,7 @@ const verifySig = async (publicKeyJWK, masterAddress, signature) => {
   return subtleCrypto.verify({ name: 'RSASSA-PKCS1-v1_5' }, importedPublicKey, signatureBuffer, message);
 };
 
-export default class Subaccount {
+export default class SubAccount {
   constructor(
     arweave,
     wallet,

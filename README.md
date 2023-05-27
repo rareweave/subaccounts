@@ -13,3 +13,93 @@ In addition, the sub-wallet signs a message stating its association with the mas
 to-do
 
 # Docs
+
+## Usage
+
+Here is an example of how to use the library:
+
+````js
+const Arweave = require('arweave');
+const Subaccounts = require('placeholder');
+
+const arweave = Arweave.init({
+  host: 'arweave.net',
+  port: 443,
+  protocol: 'https',
+});
+
+// Create a wallet instance
+const wallet = { /* wallet details */ };
+
+// Create a new instance of Subaccount
+const subaccount = new Subaccounts(arweave, wallet);
+
+// Use the subaccount methods
+// ! If the address already has one with the same app name it will return the TX
+subaccount.makeSubaccount('Address', 'AppName')
+  .then((transaction) => {
+    console.log('Subaccount creation transaction:', transaction);
+  })
+  .catch((error) => {
+    console.error('Error creating subaccount:', error);
+  });```
+````
+
+## API
+
+### Class: SubAccount
+
+The `SubAccount` class provides methods for interacting with subaccounts.
+
+#### Constructor
+
+The `SubAccount` class constructor accepts the following parameters:
+
+- `arweave` (required): An instance of the Arweave client.
+- `wallet` (required): The wallet object containing the necessary keys for creating and decrypting subaccounts.
+- `gqlUrl` (optional): The GraphQL API URL. Default: `https://prophet.rareweave.store/graphql`.
+- `gateway` (optional): The gateway URL. Default: `https://prophet.rareweave.store/`.
+
+#### fetchSubaccount
+
+The `fetchSubaccount` method retrieves and returns the sub accounts encrypted data
+
+```javascript
+async fetchSubaccount(address, app);
+```
+
+- `address` (required): The address of Subaccount being fetched
+- `app` (required): The app name
+
+### fetchMaster
+
+the `fetchMaster` method retrieves the master address of given subaccount
+
+```js
+async fetchMaster(pubkey, app);
+```
+
+- `pubkey` (required): The Pubkey of Subaccount
+- `app` (required): The app name
+
+### makeSubaccount
+
+the `makeSubaccount` method returns the Sub account transaction
+
+```js
+async makeSubaccount(address, app);
+```
+
+- `address` (required): The address of the master wallet
+- `app` (required): The app name
+
+### decrypt
+
+The `decrypt` method decrypts subaccount data.
+
+```js
+async decrypt(data, options);
+```
+
+- `data` (required): The encrypted sub account data
+- `app` (required): The app name
