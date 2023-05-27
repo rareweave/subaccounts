@@ -1,6 +1,6 @@
 (async () => {
   let Arweave = require("arweave");
-  let ArSubaccounts = require("../src/index");
+  let ArSubaccounts = require("../src/lib/index");
   let jwk = require("./jwk.json");
   let arweave = Arweave.init({
     host: "prophet.rareweave.store",
