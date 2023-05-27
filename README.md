@@ -28,9 +28,9 @@ yarn add arweave-subaccounts
 
 Here is an example of how to use the library:
 
-````js
+```js
 const Arweave = require('arweave');
-const Subaccounts = require('placeholder');
+const Subaccounts = require('arweave-subaccounts');
 
 const arweave = Arweave.init({
   host: 'arweave.net',
@@ -39,21 +39,24 @@ const arweave = Arweave.init({
 });
 
 // Create a wallet instance
-const wallet = { /* wallet details */ };
+const wallet = {
+  /* wallet details */
+};
 
 // Create a new instance of Subaccount
 const subaccount = new Subaccounts(arweave, wallet);
 
 // Use the subaccount methods
 // ! If the address already has one with the same app name it will return the TX
-subaccount.makeSubaccount('Address', 'AppName')
+subaccount
+  .makeSubaccount('Address', 'AppName')
   .then((transaction) => {
     console.log('Subaccount creation transaction:', transaction);
   })
   .catch((error) => {
     console.error('Error creating subaccount:', error);
-  });```
-````
+  });
+```
 
 ## API
 
