@@ -10,7 +10,17 @@ In addition, the sub-wallet signs a message stating its association with the mas
 
 # Installing
 
-to-do
+## Yarn
+
+```
+yarn add arweave-subaccounts
+```
+
+## Browser
+
+```
+<script src="https://www.unpkg.com/arweave-subaccounts@0.0.1/src/es/index.js"></script>
+```
 
 # Docs
 
