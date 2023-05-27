@@ -75,7 +75,22 @@ module.exports = class Subaccount {
     })
       .then((res) => res.json())
       .catch((e) => null);
-    return search?.data?.transactions?.edges[0].node.tags[3];
+
+    let data = search?.data?.transactions?.edges[0];
+
+    let body = await (await fetch(`${this.gateway}/${data.node.id}`)).json();
+
+    let verify = await verifySig(
+      pubkey,
+      data.node.tags[3].value,
+      body.signature
+    );
+
+    if (!verify) {
+      return false;
+    }
+
+    return data.node.tags[3];
   }
 
   async makeSubaccount(address, app) {
@@ -149,8 +164,24 @@ module.exports = class Subaccount {
         aesKeyRaw
       );
 
+      // Sign the master address so people cant fake the TX
       let message = new TextEncoder().encode(address); // Convert the master wallet address to bytes
-      let signature = await this.arweave.crypto.sign(jwk, message);
+      let signature = await subtleCrypto.sign(
+        {
+          name: "RSASSA-PKCS1-v1_5",
+        },
+        await subtleCrypto.importKey(
+          "jwk",
+          jwk,
+          {
+            name: "RSASSA-PKCS1-v1_5",
+            hash: { name: "SHA-256" },
+          },
+          false, // if the key is not extractable
+          ["sign"] // key usages
+        ),
+        message
+      );
 
       let signatureBase64Url = this.arweave.utils.bufferTob64Url(signature);
 
@@ -286,8 +317,6 @@ function arrayBufferToBase64(buffer) {
 }
 
 async function publicKeyToJwk(publicKey) {
-  const modulus = base64UrlToUint8Array(publicKey);
-
   const jwk = {
     kty: "RSA",
     n: publicKey,
@@ -299,15 +328,60 @@ async function publicKeyToJwk(publicKey) {
   return jwk;
 }
 
-function base64UrlToUint8Array(base64Url) {
-  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-  const raw = atob(base64);
-  const rawLength = raw.length;
-  const array = new Uint8Array(new ArrayBuffer(rawLength));
+async function rsaPublicKeyToJwk(publicKey) {
+  const jwk = {
+    kty: "RSA",
+    n: publicKey,
+    e: "AQAB", // Default public exponent for RSA keys
+    alg: "RS256",
+    ext: true,
+  };
+
+  return jwk;
+}
+
+async function verifySig(publicKeyJWK, masterAddress, signature) {
+  // Convert the master wallet address to bytes
+  const message = new TextEncoder().encode(masterAddress);
+
+  // Convert the signature from base64Url to ArrayBuffer
+  const signatureBuffer = b64UrlToBuffer(signature);
+
+  // Import the public key
+  const importedPublicKey = await subtleCrypto.importKey(
+    "jwk",
+    await rsaPublicKeyToJwk(publicKeyJWK),
+    {
+      name: "RSASSA-PKCS1-v1_5",
+      hash: { name: "SHA-256" },
+    },
+    false, // if the key is not extractable
+    ["verify"] // key usages
+  );
+
+  // Verify the signature
+
+  const isValidSignature = await subtleCrypto.verify(
+    {
+      name: "RSASSA-PKCS1-v1_5",
+    },
+    importedPublicKey,
+    signatureBuffer,
+    message
+  );
+
+  return isValidSignature;
+}
+
+function b64UrlToBuffer(b64Url) {
+  let base64 = b64Url.replace(/-/g, "+").replace(/_/g, "/");
+  let raw = atob(base64);
+  let rawLength = raw.length;
+  let array = new Uint8Array(new ArrayBuffer(rawLength));
 
   for (let i = 0; i < rawLength; i++) {
     array[i] = raw.charCodeAt(i);
   }
 
-  return array;
+  return array.buffer;
 }
