@@ -132,3 +132,4 @@ dist
 
 .prettierrc
 jwk.json
+arweave-subaccounts-*.tgz

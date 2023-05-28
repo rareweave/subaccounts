@@ -13,13 +13,13 @@ In addition, the sub-wallet signs a message stating its association with the mas
 ## Yarn
 
 ```
-yarn add arweave-subaccounts
+yarn add https://prophet.rareweave.store/aQ23JpzbQ-GcPNfD3L-y5VbJOdPV6vN3K5ETqm9byD0
 ```
 
 ## Browser
 
-```
-<script src="https://www.unpkg.com/arweave-subaccounts@0.0.2/src/es/index.js"></script>
+```js
+import Subaccounts from 'https://g8way.io/m9MBmC93ZNbr5-t6vDAKu8hChdSQSMqHOWMIwHZQryU/data.js';
 ```
 
 # Docs
@@ -33,7 +33,7 @@ const Arweave = require('arweave');
 const Subaccounts = require('arweave-subaccounts');
 
 const arweave = Arweave.init({
-  host: 'arweave.net',
+  host: 'g8way.io',
   port: 443,
   protocol: 'https',
 });
