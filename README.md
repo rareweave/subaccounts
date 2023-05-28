@@ -47,7 +47,7 @@ const wallet = {
 const subaccount = new Subaccounts(arweave, wallet);
 
 // Use the subaccount methods
-// ! If the address already has one with the same app name it will return the TX
+// ! If the address already has one with the same app name it will return previously created one
 subaccount
   .makeSubaccount('Address', 'AppName')
   .then((transaction) => {
@@ -75,7 +75,7 @@ The `SubAccount` class constructor accepts the following parameters:
 
 #### fetchSubaccount
 
-The `fetchSubaccount` method retrieves and returns the sub accounts encrypted data
+The `fetchSubaccount` method fetches user's subaccount for given app. Subaccount info includes pubkey and encrypted privkey
 
 ```javascript
 async fetchSubaccount(address, app);
