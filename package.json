@@ -8,10 +8,9 @@
   "author": "Angrymouse <nik@hns.is>",
   "license": "Unlicense",
   "private": false,
-  "dependencies": {
-    "arweave": "^1.13.5"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "arweave": "^1.13.7",
     "esbuild": "^0.17.17"
   }
 }

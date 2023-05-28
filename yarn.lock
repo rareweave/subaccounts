@@ -119,10 +119,10 @@ arconnect@^0.4.2:
   dependencies:
     arweave "^1.10.13"
 
-arweave@^1.10.13, arweave@^1.13.5:
-  version "1.13.5"
-  resolved "https://registry.yarnpkg.com/arweave/-/arweave-1.13.5.tgz#0bd28aae9d0e9fc66df45217661b08f57658c090"
-  integrity sha512-bxXoxmQF1OVXw2QFjD9m29Oo+lwUSvb2mzli494BRFGCfSSTBpE5Fp9f65HmmGEUURCL4xS17J6wBjLm1efrig==
+arweave@^1.10.13, arweave@^1.13.7:
+  version "1.13.7"
+  resolved "https://registry.yarnpkg.com/arweave/-/arweave-1.13.7.tgz#cda8534c833baec372a7052c61f53b4e39a886d7"
+  integrity sha512-Hv+x2bSI6UyBHpuVbUDMMpMje1ETfpJWj52kKfz44O0IqDRi/LukOkkDUptup1p6OT6KP1/DdpnUnsNHoskFeA==
   dependencies:
     arconnect "^0.4.2"
     asn1.js "^5.4.1"
