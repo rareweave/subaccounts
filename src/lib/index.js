@@ -12,7 +12,7 @@ const b64UrlToBuffer = (b64Url) =>
       .map((c) => c.charCodeAt(0)),
   ).buffer;
 
-const publicKeyToJwk = async (publicKey) => ({
+const publicKeyToJwk = (publicKey) => ({
   kty: 'RSA',
   n: publicKey,
   e: 'AQAB',
@@ -20,7 +20,7 @@ const publicKeyToJwk = async (publicKey) => ({
   ext: true,
 });
 
-const rsaPublicKeyToJwk = async (publicKey) => ({
+const rsaPublicKeyToJwk = (publicKey) => ({
   kty: 'RSA',
   n: publicKey,
   e: 'AQAB',
@@ -142,16 +142,9 @@ module.exports = class SubAccount {
 
     // Determine environment and set publicKey accordingly
     const publicKey =
-      typeof window === 'undefined'
-        ? {
-            kty: this.wallet.kty,
-            n: this.wallet.n,
-            e: this.wallet.e,
-            alg: 'RSA-OAEP-256',
-            ext: true,
-            key_ops: ['encrypt'],
-          }
-        : await publicKeyToJwk(await this.wallet.getActivePublicKey());
+      this.wallet.n
+        ? publicKeyToJwk(this.wallet.n)
+        : publicKeyToJwk(await this.wallet.getActivePublicKey());
 
     const publicJwk = await importKey(publicKey);
     const jwk = await this.arweave.wallets.generate();
@@ -280,17 +273,11 @@ module.exports = class SubAccount {
     // Determine environment
     if (typeof window === 'undefined') {
       // Node.js environment
-      const Arweave = require('arweave');
-      const arweave = Arweave.init();
-
       // Sign and Post the transaction using the Arweave SDK
       await this.arweave.transactions.sign(tx, this.wallet);
       let post = await this.arweave.transactions.post(tx);
 
       return post;
-
-      // Return the response
-      return response;
     } else {
       let dispatch = await this.wallet.dispatch(tx);
 
