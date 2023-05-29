@@ -1,6 +1,6 @@
 # Arweave Subaccounts
 
-The Subaccounts Protocol for Arweave allows users to create and manage sub-wallets (subaccounts) under a master wallet, with accociation of each sub-wallet with the master wallet in a verifiable manner. 
+The Subaccounts Protocol for Arweave allows users to create and manage sub-wallets (subaccounts) under a master wallet, with accociation of each sub-wallet with the master wallet in a verifiable manner.
 
 This opens up new possibilities for dApps built on the top of Arweave, as they can have full control over wallet for themselves (which means much better UX, no requirement for user confirmation for actions, more flexibility, etc), while maintaining almost full isolation from main account, resulting in flexible, UX firendly and very secure way of interacting with keys.
 
@@ -41,6 +41,7 @@ const arweave = Arweave.init({
 });
 
 // Create a wallet instance
+// Or just use wallet instance of another provider
 const wallet = {
   /* wallet details */
 };
@@ -49,7 +50,7 @@ const wallet = {
 const subaccount = new Subaccounts(arweave, wallet);
 
 // Use the subaccount methods
-// ! If the address already has one with the same app name it will return previously created one
+// ! Be sure to check if an account already exists using fetchSubaccount()
 subaccount
   .makeSubaccount('Address', 'AppName')
   .then((transaction) => {
@@ -99,7 +100,7 @@ async fetchMaster(pubkey, app);
 
 ### makeSubaccount
 
-the `makeSubaccount` method returns the Sub account transaction
+the `makeSubaccount` method returns the JWK of the subwallet, and the tx needed to store on Arweave
 
 ```js
 async makeSubaccount(address, app);
@@ -107,6 +108,16 @@ async makeSubaccount(address, app);
 
 - `address` (required): The address of the master wallet
 - `app` (required): The app name
+
+### post
+
+the `post` method essentially is a helper function for posting the tx
+
+```js
+async post(tx)
+```
+
+- `tx` (required): The Transaction object returned from makeSubaccount()
 
 ### decrypt
 

@@ -140,12 +140,6 @@ export default class SubAccount {
       throw new Error('No wallet');
     }
 
-    const existingSubaccount = await this.fetchSubaccount(address, app);
-
-    if (existingSubaccount) {
-      return existingSubaccount;
-    }
-
     // Determine environment and set publicKey accordingly
     const publicKey =
       typeof window === 'undefined'
@@ -241,7 +235,10 @@ export default class SubAccount {
       ]),
     });
 
-    return tx;
+    return {
+      jwk: jwk,
+      transaction: tx,
+    };
   }
 
   async decrypt(data, options) {
@@ -277,5 +274,27 @@ export default class SubAccount {
     const jwk = JSON.parse(new TextDecoder().decode(jwkBuffer));
 
     return jwk;
+  }
+
+  async post(tx) {
+    // Determine environment
+    if (typeof window === 'undefined') {
+      // Node.js environment
+      const Arweave = require('arweave');
+      const arweave = Arweave.init();
+
+      // Sign and Post the transaction using the Arweave SDK
+      await this.arweave.transactions.sign(tx, this.wallet);
+      let post = await this.arweave.transactions.post(tx);
+
+      return post;
+
+      // Return the response
+      return response;
+    } else {
+      let dispatch = await this.wallet.dispatch(tx);
+
+      return dispatch;
+    }
   }
 }

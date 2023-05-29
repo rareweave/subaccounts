@@ -12,9 +12,11 @@
   let SubAccounts = new ArSubaccounts(arweave, jwk, 'https://prophet.rareweave.store/graphql');
 
   // console.log(await arweave.wallets.jwkToAddress(jwk));
-  const subaccount = await SubAccounts.makeSubaccount(await arweave.wallets.jwkToAddress(jwk), 'Yeherr');
+  const subaccount = await SubAccounts.makeSubaccount(await arweave.wallets.jwkToAddress(jwk), 'Yehdderr');
 
   console.log(subaccount);
+
+  console.log(await SubAccounts.post(subaccount.transaction));
   // console.log(await arweave.transactions.sign(subaccount, jwk));
   // console.log(await arweave.transactions.post(subaccount));
   // let tx = await SubAccounts.fetchMaster(
