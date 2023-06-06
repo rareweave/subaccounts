@@ -51,7 +51,7 @@ const subaccounts = new ArSubaccounts(arweave, wallet);
 
 // Use the subaccount methods
 // useSubaccount() is probably the only function you'll ever need. It returns JWK and address
-let subaccount=await subaccounts.useSubaccount("Test")
+let subaccount=await subaccounts.useSubaccount("Test")//"Test" is app name
 subaccount.jwk // is Arweave JWK key
 subaccount.address // is subaccount's address
 subaccount.txId // is subaccount's record txid
