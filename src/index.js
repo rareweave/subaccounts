@@ -86,9 +86,36 @@ module.exports = class SubAccount {
       .then((res) => res.json())
       .catch((e) => null);
 
-    return subaccountTx?.data?.transactions?.edges[0];
-  }
+    let subaccountTxMeta = subaccountTx?.data?.transactions?.edges[0]
+    if (!subaccountTxMeta) {
+      return null
+    } else {
+      let subaccountTxId = subaccountTxMeta?.node?.id
+      let subaccountTxTags = subaccountTxMeta?.node?.tags
+      return {
+        txId: subaccountTxId,
+        address: subaccountTxTags.find(tag => tag.name == "Address")?.value,
+        pubkey: subaccountTxTags.find(tag => tag.name == "Pubkey")?.value,
+        app: subaccountTxTags.find(tag => tag.name == "App")?.value
+      }
+    }
 
+  }
+  async useSubaccount(app) {
+    let subaccount = null
+    let pubkey = this.wallet.n ? this.wallet.n : await this.wallet.getActivePublicKey()
+    let existingSubaccount = await this.fetchSubaccount(await this.arweave.wallets.ownerToAddress(pubkey), app)
+    if (existingSubaccount) {
+      let sadata = await fetch(this.gateway + existingSubaccount.txId).then(res => res.json())
+      subaccount = { txId: existingSubaccount.txId, jwk: await this.decrypt(sadata), address: existingSubaccount.address }
+
+    } else {
+      let newSubaccount = await this.makeSubaccount(await this.arweave.wallets.ownerToAddress(pubkey), app)
+      await this.post(newSubaccount.transaction)
+      subaccount = { txId: newSubaccount.transaction.id, jwk: newSubaccount.jwk, address: await this.arweave.wallets.jwkToAddress(newSubaccount.jwk) }
+    }
+    return subaccount
+  }
   async fetchMaster(pubkey, app) {
     try {
       const response = await fetch(this.gqlUrl, {
@@ -106,6 +133,10 @@ module.exports = class SubAccount {
             edges {
               node {
                 id
+                owner {
+                  address
+                  key
+                }
                 tags {
                   name
                   value
@@ -118,16 +149,18 @@ module.exports = class SubAccount {
       });
 
       const search = await response.json();
+
       const data = search?.data?.transactions?.edges[0];
 
       if (!data) {
+        console.log(search)
         throw new Error('Data not found');
       }
 
       const body = await (await fetch(`${this.gateway}/${data.node.id}`)).json();
       const isVerified = await verifySig(pubkey, data.node.tags[3].value, body.signature);
 
-      return isVerified ? data.node.tags[3] : false;
+      return isVerified ? { address: data.node.owner.address, pubkey: data.node.owner.key } : null;
     } catch (error) {
       console.error(error);
       // throw error;
@@ -223,7 +256,7 @@ module.exports = class SubAccount {
         },
         {
           name: 'Address',
-          value: address,
+          value: await this.arweave.wallets.jwkToAddress(jwk),
         },
       ]),
     });
@@ -274,7 +307,7 @@ module.exports = class SubAccount {
     if (typeof window === 'undefined') {
       // Node.js environment
       // Sign and Post the transaction using the Arweave SDK
-      await this.arweave.transactions.sign(tx, this.wallet);
+      await this.arweave.transactions.sign(tx, this.wallet.p ? this.wallet : "use_wallet");
       let post = await this.arweave.transactions.post(tx);
 
       return post;

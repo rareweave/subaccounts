@@ -1,6 +1,6 @@
 (async () => {
   let Arweave = require('arweave');
-  let ArSubaccounts = require('../src/lib/index');
+  let ArSubaccounts = require('../src/index');
   let jwk = require('../jwk.json');
   let arweave = Arweave.init({
     host: 'prophet.rareweave.store',
@@ -9,14 +9,9 @@
     timeout: 60_000,
     logging: false,
   });
-  let SubAccounts = new ArSubaccounts(arweave, jwk, 'https://prophet.rareweave.store/graphql');
+  let SubAccounts = new ArSubaccounts(arweave, jwk, 'https://arweave.net/graphql');
+  console.log(await SubAccounts.useSubaccount("Test2"))
 
-  // console.log(await arweave.wallets.jwkToAddress(jwk));
-  const subaccount = await SubAccounts.makeSubaccount(await arweave.wallets.jwkToAddress(jwk), 'Yehdderr');
-
-  console.log(subaccount);
-
-  console.log(await SubAccounts.post(subaccount.transaction));
   // console.log(await arweave.transactions.sign(subaccount, jwk));
   // console.log(await arweave.transactions.post(subaccount));
   // let tx = await SubAccounts.fetchMaster(
