@@ -15,13 +15,13 @@ In addition, the sub-wallet signs a message stating its association with the mas
 ## Yarn
 
 ```
-yarn add https://prophet.rareweave.store/aQ23JpzbQ-GcPNfD3L-y5VbJOdPV6vN3K5ETqm9byD0
+yarn add https://prophet.rareweave.store/Vbo9lRnwcVtpSmO1cA6pukH8oOdA4FmmYTtz3hP2cDA
 ```
 
-## Browser
+## Importing
 
 ```js
-import Subaccounts from 'https://g8way.io/m9MBmC93ZNbr5-t6vDAKu8hChdSQSMqHOWMIwHZQryU/data.js';
+const Subaccounts = require('arweave-subaccounts');
 ```
 
 # Docs
@@ -32,7 +32,7 @@ Here is an example of how to use the library:
 
 ```js
 const Arweave = require('arweave');
-const Subaccounts = require('arweave-subaccounts');
+const ArSubaccounts = require('arweave-subaccounts');
 
 const arweave = Arweave.init({
   host: 'g8way.io',
@@ -47,18 +47,14 @@ const wallet = {
 };
 
 // Create a new instance of Subaccount
-const subaccount = new Subaccounts(arweave, wallet);
+const subaccounts = new ArSubaccounts(arweave, wallet);
 
 // Use the subaccount methods
-// ! Be sure to check if an account already exists using fetchSubaccount()
-subaccount
-  .makeSubaccount('Address', 'AppName')
-  .then((transaction) => {
-    console.log('Subaccount creation transaction:', transaction);
-  })
-  .catch((error) => {
-    console.error('Error creating subaccount:', error);
-  });
+// useSubaccount() is probably the only function you'll ever need. It returns JWK and address
+let subaccount=await subaccounts.useSubaccount("Test")
+subaccount.jwk // is Arweave JWK key
+subaccount.address // is subaccount's address
+subaccount.txId // is subaccount's record txid
 ```
 
 ## API
