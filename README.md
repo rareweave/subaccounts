@@ -15,7 +15,7 @@ In addition, the sub-wallet signs a message stating its association with the mas
 ## Yarn
 
 ```
-yarn add https://prophet.rareweave.store/Vbo9lRnwcVtpSmO1cA6pukH8oOdA4FmmYTtz3hP2cDA
+yarn add https://github.com/rareweave/subaccounts/
 ```
 
 ## Importing
@@ -88,10 +88,10 @@ async fetchSubaccount(address, app);
 the `fetchMaster` method retrieves the master address of given subaccount
 
 ```js
-async fetchMaster(pubkey, app);
+async fetchMaster(address, app);
 ```
 
-- `pubkey` (required): The Pubkey of Subaccount
+- `address` (required): The address of Subaccount
 - `app` (required): The app name
 
 ### makeSubaccount
