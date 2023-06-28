@@ -116,7 +116,7 @@ module.exports = class SubAccount {
     }
     return subaccount
   }
-  async fetchMaster(pubkey, app) {
+  async fetchMaster(address, app) {
     try {
       const response = await fetch(this.gqlUrl, {
         method: 'POST',
@@ -125,7 +125,7 @@ module.exports = class SubAccount {
           query: `query {
           transactions(
             tags: [
-              {name: "Pubkey", values: ["${pubkey}"]}
+              {name: "Address", values: ["${address}"]}
               {name: "Protocol", values: ["Subaccounts"]}
               {name: "App", values: ["${app}"]}
             ]
