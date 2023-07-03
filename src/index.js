@@ -153,8 +153,7 @@ module.exports = class SubAccount {
       const data = search?.data?.transactions?.edges[0];
 
       if (!data) {
-        console.log(search)
-        throw new Error('Data not found');
+        return null;
       }
 
       const body = await (await fetch(`${this.gateway}/${data.node.id}`)).json();
