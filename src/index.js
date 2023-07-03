@@ -109,7 +109,7 @@ module.exports = class SubAccount {
           transactions(
             tags: [
               {name: "Address", values: ["${address}"]}
-              {name: "Protocol", values: ["Subaccounts-v1.1"]}
+              {name: "Protocol", values: ["Subaccounts-v1.1","Subaccounts-v1","Subaccounts"]}
               {name: "App", values: ["${app}"]}
             ]
             sort: HEIGHT_DESC, first: 1) {
