@@ -37,7 +37,7 @@ module.exports = class SubAccount {
     arweave,
     wallet,
     gqlUrl = `https://g8way.io/graphql`,
-    gateway = `https://g8way.io/`,
+    gateway = `https://g8way.io`,
   ) {
     this.arweave = arweave;
     this.wallet = wallet;
@@ -132,7 +132,7 @@ module.exports = class SubAccount {
       });
 
       const search = await response.json();
-
+   
       const data = search?.data?.transactions?.edges[0];
 
       if (!data) {
@@ -141,8 +141,7 @@ module.exports = class SubAccount {
       let pubkey = data.node.tags.find(t => t.name == "Pubkey")?.value
       if (!pubkey || !await this.arweave.wallets.ownerToAddress(pubkey)) { return null }
       const body = await (await fetch(`${this.gateway}/${data.node.id}`)).json();
-
-      const isVerified = await this.arweave.crypto.verify(pubkey, new TextEncoder().encode(address), this.arweave.utils.b64UrlToBuffer(body.signature));
+      const isVerified = await this.arweave.crypto.verify(pubkey, new TextEncoder().encode(address), await this.arweave.utils.b64UrlToBuffer(body.signature));
 
       return isVerified ? { address: data.node.owner.address, pubkey: data.node.owner.key } : null;
     } catch (error) {
