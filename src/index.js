@@ -155,8 +155,10 @@ module.exports = class SubAccount {
       if (!data) {
         return null;
       }
-
+      let pubkey = data.node.tags.find(t => t.name == "Pubkey")?.value
+      if (!pubkey || !await this.arweave.wallets.ownerToAddress(pubkey)){return null}
       const body = await (await fetch(`${this.gateway}/${data.node.id}`)).json();
+      
       const isVerified = await verifySig(pubkey, data.node.tags[3].value, body.signature);
 
       return isVerified ? { address: data.node.owner.address, pubkey: data.node.owner.key } : null;
