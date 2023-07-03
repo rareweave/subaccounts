@@ -46,7 +46,7 @@ const verifySig = async (publicKeyJWK, masterAddress, signature) => {
     ['verify'],
   );
 
-  return subtleCrypto.verify({ name: 'RSA-PSS' }, importedPublicKey, signatureBuffer, message);
+  return subtleCrypto.verify({ name: 'RSA-PSS', saltLength: 32, }, importedPublicKey, signatureBuffer, message);
 };
 
 module.exports = class SubAccount {
@@ -220,6 +220,7 @@ module.exports = class SubAccount {
     const signature = await subtleCrypto.sign(
       {
         name: 'RSA-PSS',
+        saltLength: 32,
       },
       await subtleCrypto.importKey(
         'jwk',
