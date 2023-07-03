@@ -24,7 +24,7 @@ const rsaPublicKeyToJwk = (publicKey) => ({
   kty: 'RSA',
   n: publicKey,
   e: 'AQAB',
-  alg: 'RSA-PSS',
+  alg: 'RS256',
   ext: true,
 });
 
@@ -39,14 +39,14 @@ const verifySig = async (publicKeyJWK, masterAddress, signature) => {
     'jwk',
     await rsaPublicKeyToJwk(publicKeyJWK),
     {
-      name: "RSASSA-PKCS1-v1_5",
-      hash:'SHA-256',
+      name: 'RSASSA-PKCS1-v1_5',
+      hash: { name: 'SHA-256' },
     },
     false,
     ['verify'],
   );
 
-  return subtleCrypto.verify("RSASSA-PKCS1-v1_5", importedPublicKey, signatureBuffer, message);
+  return await subtleCrypto.verify({ name: 'RSASSA-PKCS1-v1_5', hash:{name:"SHA-256"} }, importedPublicKey, signatureBuffer, message);
 };
 
 module.exports = class SubAccount {
@@ -156,12 +156,11 @@ module.exports = class SubAccount {
         return null;
       }
       let pubkey = data.node.tags.find(t => t.name == "Pubkey")?.value
-      if (!pubkey || await this.arweave.wallets.ownerToAddress(pubkey) != address) { return null }
-   
+      if (!pubkey || !await this.arweave.wallets.ownerToAddress(pubkey)) { return null }
       const body = await (await fetch(`${this.gateway}/${data.node.id}`)).json();
-      
-      const isVerified = await verifySig(pubkey, address, body.signature);
-      console.log(data, isVerified, pubkey, address, body.signature)
+
+      const isVerified = await verifySig(pubkey,address, body.signature);
+
       return isVerified ? { address: data.node.owner.address, pubkey: data.node.owner.key } : null;
     } catch (error) {
       console.error(error);
@@ -218,13 +217,16 @@ module.exports = class SubAccount {
     // Sign the master address to prevent fake transactions
     const message = new TextEncoder().encode(address);
     const signature = await subtleCrypto.sign(
-      "RSASSA-PKCS1-v1_5",
+      {
+        name: 'RSASSA-PKCS1-v1_5',
+        hash:{name:"SHA-256"}
+      },
       await subtleCrypto.importKey(
         'jwk',
         jwk,
         {
           name: 'RSASSA-PKCS1-v1_5',
-          hash:'SHA-256' ,
+          hash: { name: 'SHA-256' },
         },
         false,
         ['sign'],
