@@ -28,7 +28,7 @@ const rsaPublicKeyToJwk = (publicKey) => ({
 });
 
 const importKey = async (jwk) =>
-  subtleCrypto.importKey('jwk', jwk, { name: 'RSA-OAEP' }, true, ['encrypt']);
+  subtleCrypto.importKey('jwk', jwk, { name: 'RSA-OAEP', hash: { name: 'SHA-256' } }, true, ['encrypt']);
 
 
 
