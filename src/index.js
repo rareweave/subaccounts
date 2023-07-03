@@ -24,37 +24,20 @@ const rsaPublicKeyToJwk = (publicKey) => ({
   kty: 'RSA',
   n: publicKey,
   e: 'AQAB',
-  alg: 'RS256',
   ext: true,
 });
 
 const importKey = async (jwk) =>
-  subtleCrypto.importKey('jwk', jwk, { name: 'RSA-OAEP', hash: { name: 'SHA-256' } }, true, ['encrypt']);
+  subtleCrypto.importKey('jwk', jwk, { name: 'RSA-OAEP' }, true, ['encrypt']);
 
-const verifySig = async (publicKeyJWK, masterAddress, signature) => {
-  const message = new TextEncoder().encode(masterAddress);
-  const signatureBuffer = b64UrlToBuffer(signature);
 
-  const importedPublicKey = await subtleCrypto.importKey(
-    'jwk',
-    await rsaPublicKeyToJwk(publicKeyJWK),
-    {
-      name: 'RSASSA-PKCS1-v1_5',
-      hash: { name: 'SHA-256' },
-    },
-    false,
-    ['verify'],
-  );
-
-  return await subtleCrypto.verify({ name: 'RSASSA-PKCS1-v1_5', hash:{name:"SHA-256"} }, importedPublicKey, signatureBuffer, message);
-};
 
 module.exports = class SubAccount {
   constructor(
     arweave,
     wallet,
-    gqlUrl = `https://arweave-search.goldsky.com/graphql`,
-    gateway = `https://g8way.io/`,
+    gqlUrl = `https://prophet.rareweave.store/graphql`,
+    gateway = `https://prophet.rareweave.store/`,
   ) {
     this.arweave = arweave;
     this.wallet = wallet;
@@ -159,7 +142,7 @@ module.exports = class SubAccount {
       if (!pubkey || !await this.arweave.wallets.ownerToAddress(pubkey)) { return null }
       const body = await (await fetch(`${this.gateway}/${data.node.id}`)).json();
 
-      const isVerified = await verifySig(pubkey,address, body.signature);
+      const isVerified = await this.arweave.crypto.verify(pubkey, new TextEncoder().encode(address), this.arweave.utils.b64UrlToBuffer(body.signature));
 
       return isVerified ? { address: data.node.owner.address, pubkey: data.node.owner.key } : null;
     } catch (error) {
@@ -216,23 +199,7 @@ module.exports = class SubAccount {
 
     // Sign the master address to prevent fake transactions
     const message = new TextEncoder().encode(address);
-    const signature = await subtleCrypto.sign(
-      {
-        name: 'RSASSA-PKCS1-v1_5',
-        hash:{name:"SHA-256"}
-      },
-      await subtleCrypto.importKey(
-        'jwk',
-        jwk,
-        {
-          name: 'RSASSA-PKCS1-v1_5',
-          hash: { name: 'SHA-256' },
-        },
-        false,
-        ['sign'],
-      ),
-      message,
-    );
+    const signature = await this.arweave.crypto.sign(jwk,message)
 
     const signatureBase64Url = this.arweave.utils.bufferTob64Url(signature);
 
