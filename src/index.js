@@ -53,8 +53,8 @@ module.exports = class SubAccount {
   constructor(
     arweave,
     wallet,
-    gqlUrl = `https://prophet.rareweave.store/graphql`,
-    gateway = `https://prophet.rareweave.store/`,
+    gqlUrl = `https://arweave-search.goldsky.com/graphql`,
+    gateway = `https://g8way.io/`,
   ) {
     this.arweave = arweave;
     this.wallet = wallet;
