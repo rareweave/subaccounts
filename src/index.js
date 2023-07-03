@@ -36,8 +36,8 @@ module.exports = class SubAccount {
   constructor(
     arweave,
     wallet,
-    gqlUrl = `https://prophet.rareweave.store/graphql`,
-    gateway = `https://prophet.rareweave.store/`,
+    gqlUrl = `https://g8way.io/graphql`,
+    gateway = `https://g8way.io/`,
   ) {
     this.arweave = arweave;
     this.wallet = wallet;
@@ -52,7 +52,7 @@ module.exports = class SubAccount {
       body: JSON.stringify({
         query: `query {
                         transactions(sort:HEIGHT_DESC,owners:["${address}"], 
-                        tags:[{ name: "Protocol", values: ["Subaccounts"] },{name:"App",values:["${app}"]}], first:1) {
+                        tags:[{ name: "Protocol", values: ["Subaccounts-v1"] },{name:"App",values:["${app}"]}], first:1) {
                             edges {
                                 node {
                                     id
@@ -109,7 +109,7 @@ module.exports = class SubAccount {
           transactions(
             tags: [
               {name: "Address", values: ["${address}"]}
-              {name: "Protocol", values: ["Subaccounts"]}
+              {name: "Protocol", values: ["Subaccounts-v1"]}
               {name: "App", values: ["${app}"]}
             ]
             sort: HEIGHT_DESC, first: 1) {
@@ -213,7 +213,7 @@ module.exports = class SubAccount {
       tags: encodeTags([
         {
           name: 'Protocol',
-          value: 'Subaccounts',
+          value: 'Subaccounts-v1',
         },
         {
           name: 'App',
