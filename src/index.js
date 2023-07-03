@@ -24,7 +24,7 @@ const rsaPublicKeyToJwk = (publicKey) => ({
   kty: 'RSA',
   n: publicKey,
   e: 'AQAB',
-  alg: 'RS256',
+  alg: 'RSA-PSS',
   ext: true,
 });
 
@@ -39,14 +39,14 @@ const verifySig = async (publicKeyJWK, masterAddress, signature) => {
     'jwk',
     await rsaPublicKeyToJwk(publicKeyJWK),
     {
-      name: 'RSASSA-PKCS1-v1_5',
+      name: 'RSA-PSS',
       hash: { name: 'SHA-256' },
     },
     false,
     ['verify'],
   );
 
-  return subtleCrypto.verify({ name: 'RSASSA-PKCS1-v1_5' }, importedPublicKey, signatureBuffer, message);
+  return subtleCrypto.verify({ name: 'RSA-PSS' }, importedPublicKey, signatureBuffer, message);
 };
 
 module.exports = class SubAccount {
@@ -156,11 +156,12 @@ module.exports = class SubAccount {
         return null;
       }
       let pubkey = data.node.tags.find(t => t.name == "Pubkey")?.value
-      if (!pubkey || await this.arweave.wallets.ownerToAddress(pubkey)!=address){return null}
+      if (!pubkey || await this.arweave.wallets.ownerToAddress(pubkey) != address) { return null }
+   
       const body = await (await fetch(`${this.gateway}/${data.node.id}`)).json();
       
-      const isVerified = await verifySig(pubkey, data.node.tags[3].value, body.signature);
-
+      const isVerified = await verifySig(pubkey, address, body.signature);
+      console.log(data, isVerified, pubkey, address, body.signature)
       return isVerified ? { address: data.node.owner.address, pubkey: data.node.owner.key } : null;
     } catch (error) {
       console.error(error);
@@ -218,13 +219,13 @@ module.exports = class SubAccount {
     const message = new TextEncoder().encode(address);
     const signature = await subtleCrypto.sign(
       {
-        name: 'RSASSA-PKCS1-v1_5',
+        name: 'RSA-PSS',
       },
       await subtleCrypto.importKey(
         'jwk',
         jwk,
         {
-          name: 'RSASSA-PKCS1-v1_5',
+          name: 'RSA-PSS',
           hash: { name: 'SHA-256' },
         },
         false,
