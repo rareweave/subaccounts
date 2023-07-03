@@ -39,14 +39,14 @@ const verifySig = async (publicKeyJWK, masterAddress, signature) => {
     'jwk',
     await rsaPublicKeyToJwk(publicKeyJWK),
     {
-      name: 'RSA-PSS',
-      hash: { name: 'SHA-256' },
+      name: "RSASSA-PKCS1-v1_5",
+      hash:'SHA-256',
     },
     false,
     ['verify'],
   );
 
-  return subtleCrypto.verify({ name: 'RSA-PSS', saltLength: 32, }, importedPublicKey, signatureBuffer, message);
+  return subtleCrypto.verify("RSASSA-PKCS1-v1_5", importedPublicKey, signatureBuffer, message);
 };
 
 module.exports = class SubAccount {
@@ -218,16 +218,13 @@ module.exports = class SubAccount {
     // Sign the master address to prevent fake transactions
     const message = new TextEncoder().encode(address);
     const signature = await subtleCrypto.sign(
-      {
-        name: 'RSA-PSS',
-        saltLength: 32,
-      },
+      "RSASSA-PKCS1-v1_5",
       await subtleCrypto.importKey(
         'jwk',
         jwk,
         {
-          name: 'RSA-PSS',
-          hash: { name: 'SHA-256' },
+          name: 'RSASSA-PKCS1-v1_5',
+          hash:'SHA-256' ,
         },
         false,
         ['sign'],
