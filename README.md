@@ -15,7 +15,7 @@ In addition, the sub-wallet signs a message stating its association with the mas
 ## Yarn
 
 ```
-yarn add https://github.com/rareweave/subaccounts/
+yarn add https://arweave.net/zXnMIZiiUEhKRcT1NqIKnDG26ZJX3Vt2tQU95XUNFsc
 ```
 
 ## Importing
