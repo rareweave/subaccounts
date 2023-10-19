@@ -37,7 +37,7 @@ module.exports = class SubAccount {
     arweave,
     wallet,
     gqlUrl = `https://g8way.io/graphql`,
-    gateway = `https://g8way.io`,
+    gateway = `https://g8way.io/`,
   ) {
     this.arweave = arweave;
     this.wallet = wallet;
