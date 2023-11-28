@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "es2018",
+    "lib": ["es2018", "DOM"],
+
+    /* Modules */
+    "module": "ES2015",
+    "moduleResolution": "node",
+
+    /* JavaScript Support */
+    //"allowJs": true,
+
+    /* Emit */
+    "declaration": true,
+    "sourceMap": true,
+    "outDir": "dist",
+
+    /* Interop Constraints */
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* Type Checking */
+    "strict": true
+  },
+  "include": ["src/**/*.ts", "test/test/makeSubaccount.test.ts"],
+  "exclude": ["node_modules", "dist/", "tests/"]
+}

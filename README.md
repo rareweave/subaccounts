@@ -21,7 +21,7 @@ yarn add https://arweave.net/zXnMIZiiUEhKRcT1NqIKnDG26ZJX3Vt2tQU95XUNFsc
 ## Importing
 
 ```js
-const Subaccounts = require('arweave-subaccounts');
+const Subaccounts = require("arweave-subaccounts");
 ```
 
 # Docs
@@ -31,13 +31,13 @@ const Subaccounts = require('arweave-subaccounts');
 Here is an example of how to use the library:
 
 ```js
-const Arweave = require('arweave');
-const ArSubaccounts = require('arweave-subaccounts');
+const Arweave = require("arweave");
+const ArSubaccounts = require("arweave-subaccounts");
 
 const arweave = Arweave.init({
-  host: 'g8way.io',
+  host: "g8way.io",
   port: 443,
-  protocol: 'https',
+  protocol: "https",
 });
 
 // Create a wallet instance
@@ -51,10 +51,10 @@ const subaccounts = new ArSubaccounts(arweave, wallet);
 
 // Use the subaccount methods
 // useSubaccount() is probably the only function you'll ever need. It returns JWK and address
-let subaccount=await subaccounts.useSubaccount("Test")//"Test" is app name
-subaccount.jwk // is Arweave JWK key
-subaccount.address // is subaccount's address
-subaccount.txId // is subaccount's record txid
+let subaccount = await subaccounts.useSubaccount("Test"); //"Test" is app name
+subaccount.jwk; // is Arweave JWK key
+subaccount.address; // is subaccount's address
+subaccount.txId; // is subaccount's record txid
 ```
 
 ## API
